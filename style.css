@@ -93,6 +93,7 @@ main {
     scrollbar-width: none;
     -ms-overflow-style: none;
     transition: background-color 0.3s;
+   -webkit-overflow-scrolling: touch;
 }
 main::-webkit-scrollbar { display: none; }
 
@@ -141,6 +142,7 @@ footer {
     margin-bottom: 10px;
     scrollbar-width: none;
     white-space: nowrap;
+   -webkit-overflow-scrolling: touch;
 }
 #template-area::-webkit-scrollbar { display: none; }
 
