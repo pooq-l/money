@@ -55,13 +55,10 @@ header {
 }
 
 .header-icon {
-    width: 30px;
-    height: 30px;
+    width: 60px;
+    height: 60px;
     margin-bottom: 25px;
-}
-.header-icon circle { 
-    fill: var(--primary-color); 
-    transition: fill 0.3s;
+    object-fit: contain;
 }
 
 .total-amount-box {
