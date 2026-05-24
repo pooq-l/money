@@ -1,8 +1,7 @@
 /* =========================================
-   3. JavaScript: ロジック
+   3. JavaScript: ロジック（エラー回避・完全版）
    ========================================= */
 
-// ★鍵の名前を「v4」などに変えて、過去のテストデータをリセットします
 const STORAGE_KEY_TASKS = 'todo_save_data_v4';
 const STORAGE_KEY_TOTAL = 'todo_total_amount_v4';
 const STORAGE_KEY_HISTORY = 'todo_history_v2';
@@ -14,7 +13,6 @@ let totalAmount = 0;
 let historyData = [];
 let templates = [];
 
-// 初期テンプレート（不要な場合は中身をカラ [] にしてもOKです）
 const defaultTemplates = [
     { title: "服片付ける", money: "50" },
     { title: "皿洗い", money: "100" },
@@ -73,7 +71,7 @@ function init() {
     renderTasks();
     renderTotalAmount();
     renderTemplates();
-    initSortable(); // ★ドラッグ＆ドロップの初期化
+    initSortable(); 
 }
 
 function saveData() {
@@ -84,98 +82,92 @@ function saveData() {
 }
 
 function renderTotalAmount() {
-    totalAmountDisp.innerHTML = `¥ ${totalAmount.toLocaleString()}`;
+    if(totalAmountDisp) totalAmountDisp.innerHTML = `¥ ${totalAmount.toLocaleString()}`;
 }
 
-// テンプレート表示（修正版）
 function renderTemplates() {
-    templateAreaEl.innerHTML = '';
-    templates.forEach(tpl => {
-        const btn = document.createElement('button');
-        btn.className = 'template-btn';
-        btn.innerText = `${tpl.title} ¥${tpl.money}`;
-        btn.addEventListener('click', () => {
-            newTitleInp.value = tpl.title;
-            newMoneyInp.value = tpl.money;
-            addFormEl.dispatchEvent(new Event('submit'));
+    if(templateAreaEl) {
+        templateAreaEl.innerHTML = '';
+        templates.forEach(tpl => {
+            const btn = document.createElement('button');
+            btn.className = 'template-btn';
+            btn.innerText = `${tpl.title} ¥${tpl.money}`;
+            btn.addEventListener('click', () => {
+                if(newTitleInp && newMoneyInp && addFormEl) {
+                    newTitleInp.value = tpl.title;
+                    newMoneyInp.value = tpl.money;
+                    addFormEl.dispatchEvent(new Event('submit'));
+                }
+            });
+            templateAreaEl.appendChild(btn);
         });
-        templateAreaEl.appendChild(btn);
-    });
-
-    mypageTemplateListEl.innerHTML = '';
-    templates.forEach((tpl, index) => {
-        const btn = document.createElement('button');
-        btn.className = 'template-btn';
-        
-        // ★ここを修正しました！赤色固定をやめて、テーマカラーと連動させます。
-        btn.style.borderColor = 'var(--primary-color)'; 
-        
-        btn.innerText = `${tpl.title} ¥${tpl.money} ×`;
-        btn.addEventListener('click', () => {
-            if(confirm(`テンプレート「${tpl.title}」を削除しますか？`)) {
-                templates.splice(index, 1);
-                saveData();
-                renderTemplates();
-            }
-        });
-        mypageTemplateListEl.appendChild(btn);
-    });
-}
-
-// ★ドラッグ＆ドロップの設定（SortableJS）
-function initSortable() {
-    const sortableOptions = {
-        animation: 150,
-        delay: 200, // スマホでスワイプした時に誤爆しないよう0.2秒長押しで掴む
-        delayOnTouchOnly: true,
-        onEnd: function (evt) {
-            // ドラッグが終わったら配列の順番も入れ替えて保存
-            const movedItem = templates.splice(evt.oldIndex, 1)[0];
-            templates.splice(evt.newIndex, 0, movedItem);
-            saveData();
-            renderTemplates(); // 両方の画面の並び順を同期
-        }
-    };
-    
-    // ホーム画面とマイページ画面の両方のリストにドラッグ機能をつける
-    new Sortable(templateAreaEl, sortableOptions);
-    new Sortable(mypageTemplateListEl, sortableOptions);
-}
-
-templateAddForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const title = tplTitleInp.value.trim();
-    const money = tplMoneyInp.value.replace(/[^0-9]/g, '');
-    if(!title || !money) return;
-
-    templates.push({ title: title, money: money });
-    saveData();
-    renderTemplates();
-    tplTitleInp.value = '';
-    tplMoneyInp.value = '';
-});
-
-saveTplBtn.addEventListener('click', () => {
-    const title = newTitleInp.value.trim();
-    const money = newMoneyInp.value.replace(/[^0-9]/g, '');
-
-    if (!title || !money) {
-        alert("「やること」と「おこづかい」を入力してから押してね！");
-        return;
     }
 
-    templates.push({ title: title, money: money });
-    saveData();
-    renderTemplates();
-    addFormEl.dispatchEvent(new Event('submit'));
-});
+    if(mypageTemplateListEl) {
+        mypageTemplateListEl.innerHTML = '';
+        templates.forEach((tpl, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'template-btn';
+            btn.style.borderColor = 'var(--primary-color)'; 
+            btn.innerText = `${tpl.title} ¥${tpl.money} ×`;
+            btn.addEventListener('click', () => {
+                if(confirm(`テンプレート「${tpl.title}」を削除しますか？`)) {
+                    templates.splice(index, 1);
+                    saveData();
+                    renderTemplates();
+                }
+            });
+            mypageTemplateListEl.appendChild(btn);
+        });
+    }
+}
+
+function initSortable() {
+    if (typeof Sortable !== 'undefined') {
+        const sortableOptions = {
+            animation: 150, delay: 200, delayOnTouchOnly: true,
+            onEnd: function (evt) {
+                const movedItem = templates.splice(evt.oldIndex, 1)[0];
+                templates.splice(evt.newIndex, 0, movedItem);
+                saveData(); renderTemplates();
+            }
+        };
+        if(templateAreaEl) new Sortable(templateAreaEl, sortableOptions);
+        if(mypageTemplateListEl) new Sortable(mypageTemplateListEl, sortableOptions);
+    }
+}
+
+if(templateAddForm) {
+    templateAddForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const title = tplTitleInp.value.trim();
+        const money = tplMoneyInp.value.replace(/[^0-9]/g, '');
+        if(!title || !money) return;
+        templates.push({ title: title, money: money });
+        saveData(); renderTemplates();
+        tplTitleInp.value = ''; tplMoneyInp.value = '';
+    });
+}
+
+if(saveTplBtn) {
+    saveTplBtn.addEventListener('click', () => {
+        const title = newTitleInp.value.trim();
+        const money = newMoneyInp.value.replace(/[^0-9]/g, '');
+        if (!title || !money) {
+            alert("「やること」と「おこづかい」を入力してから押してね！"); return;
+        }
+        templates.push({ title: title, money: money });
+        saveData(); renderTemplates();
+        addFormEl.dispatchEvent(new Event('submit'));
+    });
+}
 
 document.querySelectorAll('.color-dot').forEach(dot => {
     dot.addEventListener('click', () => {
         const themeName = dot.dataset.theme;
         applyThemePalette(themeName);
         localStorage.setItem(STORAGE_KEY_THEME_NAME, themeName);
-        if (viewArchive.style.display === 'block') renderChart();
+        if (viewArchive && viewArchive.style.display === 'block') renderChart();
     });
 });
 
@@ -189,19 +181,18 @@ function applyThemePalette(themeName) {
 }
 
 function renderTasks() {
+    if(!taskListEl) return;
     taskListEl.innerHTML = '';
     tasks.forEach((task) => {
         const li = document.createElement('li');
         li.className = 'task-item';
         li.dataset.id = task.id;
         li.addEventListener('click', () => completeTask(li));
-        
         li.addEventListener('contextmenu', (e) => { e.preventDefault(); silentDeleteTask(task.id); });
         let pressTimer;
         li.addEventListener('touchstart', () => { pressTimer = window.setTimeout(() => silentDeleteTask(task.id), 800); });
         li.addEventListener('touchend', () => clearTimeout(pressTimer));
         li.addEventListener('touchmove', () => clearTimeout(pressTimer));
-
         li.innerHTML = `<span class="task-title">${escapeHtml(task.title)}</span><div class="task-right"><span class="task-money">¥ ${escapeHtml(task.money)}</span></div>`;
         taskListEl.appendChild(li);
     });
@@ -238,34 +229,41 @@ function completeTask(taskItemEl) {
     setTimeout(() => { tasks.splice(taskIndex, 1); saveData(); renderTasks(); }, 300);
 }
 
-addFormEl.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const title = newTitleInp.value.trim();
-    const money = parseInt(newMoneyInp.value.replace(/[^0-9]/g, ''), 10);
-    if (!title || !money) return;
-
-    tasks.push({ id: Date.now().toString(), title: title, money: money.toString() });
-    saveData(); renderTasks();
-    newTitleInp.value = ''; newMoneyInp.value = '';
-});
-
-function switchView(target) {
-    viewHome.style.display = target === 'home' ? 'block' : 'none';
-    viewArchive.style.display = target === 'archive' ? 'block' : 'none';
-    viewMypage.style.display = target === 'mypage' ? 'block' : 'none';
-    homeControls.style.display = target === 'home' ? 'block' : 'none';
-
-    navHome.classList.toggle('active', target === 'home');
-    navArchive.classList.toggle('active', target === 'archive');
-    navMypage.classList.toggle('active', target === 'mypage');
+if(addFormEl) {
+    addFormEl.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const title = newTitleInp.value.trim();
+        const money = parseInt(newMoneyInp.value.replace(/[^0-9]/g, ''), 10);
+        if (!title || !money) return;
+        tasks.push({ id: Date.now().toString(), title: title, money: money.toString() });
+        saveData(); renderTasks();
+        newTitleInp.value = ''; newMoneyInp.value = '';
+    });
 }
 
-navHome.addEventListener('click', () => switchView('home'));
-navArchive.addEventListener('click', () => { switchView('archive'); archiveTitleEl.innerText = motivationMessages[Math.floor(Math.random() * motivationMessages.length)]; renderChart(); });
-navMypage.addEventListener('click', () => switchView('mypage'));
+function switchView(target) {
+    if(viewHome) viewHome.style.display = target === 'home' ? 'block' : 'none';
+    if(viewArchive) viewArchive.style.display = target === 'archive' ? 'block' : 'none';
+    if(viewMypage) viewMypage.style.display = target === 'mypage' ? 'block' : 'none';
+    if(homeControls) homeControls.style.display = target === 'home' ? 'block' : 'none';
+
+    if(navHome) navHome.classList.toggle('active', target === 'home');
+    if(navArchive) navArchive.classList.toggle('active', target === 'archive');
+    if(navMypage) navMypage.classList.toggle('active', target === 'mypage');
+}
+
+if(navHome) navHome.addEventListener('click', () => switchView('home'));
+if(navArchive) navArchive.addEventListener('click', () => { 
+    switchView('archive'); 
+    if(archiveTitleEl) archiveTitleEl.innerText = motivationMessages[Math.floor(Math.random() * motivationMessages.length)]; 
+    renderChart(); 
+});
+if(navMypage) navMypage.addEventListener('click', () => switchView('mypage'));
 
 function renderChart() {
     const canvas = document.getElementById('historyChart');
+    if(!canvas) return; // Canvasがない場合はスキップ
+
     const ctx = canvas.getContext('2d');
     const labels = []; const data = []; let historySumTotal = 0;
     
@@ -279,45 +277,53 @@ function renderChart() {
 
     const averageValue = historyData.length > 0 ? (historySumTotal / 7) : 0;
     
-    // ★現在のテーマカラーとプレースホルダーカラーを取得
-    const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
-    const pastColor = getComputedStyle(document.documentElement).getPropertyValue('--placeholder-color').trim();
+    // 変数が空の場合の予備カラーを設定
+    const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() || '#FFB703';
+    const pastColor = getComputedStyle(document.documentElement).getPropertyValue('--placeholder-color').trim() || '#a7a3af';
 
-    if(myChart) myChart.destroy();
-
-    myChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{ 
-                data: data, 
-                // ★今日（最後）はテーマ色、過去はプレースホルダー色を適用
-                backgroundColor: data.map((_, i) => i === data.length - 1 ? themeColor : pastColor), 
-                borderRadius: 5 
-            }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: true, aspectRatio: 1.8,
-            plugins: {
-                legend: { display: false },
-                annotation: { annotations: { line1: { type: 'line', yMin: averageValue, yMax: averageValue, borderColor: '#aaaaaa', borderWidth: 1.5, borderDash: [5, 5], label: { display: true, content: '平均', position: 'start', backgroundColor: 'transparent', color: '#aaaaaa', font: { size: 10 }, yAdjust: -10, xAdjust: 10 } } } }
-            },
-            scales: {
-                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { color: '#aaaaaa', font: { size: 10 }, stepSize: 100 } },
-                x: { grid: { display: false }, ticks: { color: '#aaaaaa', font: { size: 10 } } }
-            }
+    // ★グラフの描画でエラーが起きてもプログラムが止まらないように保護
+    try {
+        if(typeof Chart !== 'undefined') {
+            if(myChart) myChart.destroy();
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{ 
+                        data: data, 
+                        backgroundColor: data.map((_, i) => i === data.length - 1 ? themeColor : pastColor), 
+                        borderRadius: 5 
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: true, aspectRatio: 1.8,
+                    plugins: {
+                        legend: { display: false },
+                        annotation: { annotations: { line1: { type: 'line', yMin: averageValue, yMax: averageValue, borderColor: '#aaaaaa', borderWidth: 1.5, borderDash: [5, 5], label: { display: true, content: '平均', position: 'start', backgroundColor: 'transparent', color: '#aaaaaa', font: { size: 10 }, yAdjust: -10, xAdjust: 10 } } } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { color: '#aaaaaa', font: { size: 10 }, stepSize: 100 } },
+                        x: { grid: { display: false }, ticks: { color: '#aaaaaa', font: { size: 10 } } }
+                    }
+                }
+            });
         }
-    });
+    } catch (error) {
+        console.log("グラフの描画に失敗しました", error);
+    }
 
+    // グラフが失敗しても履歴リストは必ず表示させる
     const historyListEl = document.getElementById('history-list');
-    historyListEl.innerHTML = '';
-    [...historyData].reverse().slice(0, 10).forEach(h => {
-        const li = document.createElement('li'); li.className = 'history-item'; li.style.cursor = 'pointer';
-        li.addEventListener('click', () => restoreTask(h.historyId));
-        const dateParts = h.date.split('-');
-        li.innerHTML = `<div><span class="history-date">${parseInt(dateParts[1])}/${parseInt(dateParts[2])}</span><span>${escapeHtml(h.title)}</span></div><span class="task-money">¥ ${h.money}</span>`;
-        historyListEl.appendChild(li);
-    });
+    if(historyListEl) {
+        historyListEl.innerHTML = '';
+        [...historyData].reverse().slice(0, 10).forEach(h => {
+            const li = document.createElement('li'); li.className = 'history-item'; li.style.cursor = 'pointer';
+            li.addEventListener('click', () => restoreTask(h.historyId));
+            const dateParts = h.date.split('-');
+            li.innerHTML = `<div><span class="history-date">${parseInt(dateParts[1])}/${parseInt(dateParts[2])}</span><span>${escapeHtml(h.title)}</span></div><span class="task-money">¥ ${h.money}</span>`;
+            historyListEl.appendChild(li);
+        });
+    }
 }
 
 function restoreTask(historyId) {
@@ -336,7 +342,10 @@ function startMoneyAnimation() {
         const coin = document.createElement('div'); coin.className = 'coin';
         coin.innerText = coinsIcons[Math.floor(Math.random() * coinsIcons.length)];
         coin.style.left = Math.random() * 100 + 'vw'; coin.style.animationDelay = Math.random() * 0.3 + 's';
-        animationContainer.appendChild(coin); coin.addEventListener('animationend', () => coin.remove());
+        if(animationContainer) {
+            animationContainer.appendChild(coin); 
+            coin.addEventListener('animationend', () => coin.remove());
+        }
     }
 }
 
