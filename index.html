@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>頑張ったらおこづかい！</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <svg class="header-icon" viewBox="0 0 100 100">
+                <circle cx="20" cy="50" r="10"></circle>
+                <circle cx="50" cy="20" r="10"></circle>
+                <circle cx="80" cy="50" r="10"></circle>
+                <circle cx="50" cy="80" r="10"></circle>
+            </svg>
+            <div class="total-amount-box">
+                <div id="total-amount-display">¥ 0</div>
+            </div>
+        </header>
+
+        <main id="view-home" class="view">
+            <ul id="task-list"></ul>
+        </main>
+
+        <main id="view-archive" class="view" style="display: none;">
+            <h2 class="archive-title">過去7日間の成果</h2>
+            <div class="chart-wrapper">
+                <canvas id="historyChart"></canvas>
+            </div>
+            <ul id="history-list"></ul>
+        </main>
+
+        <main id="view-mypage" class="view" style="display: none;">
+            <h2 class="mypage-title">マイページ・設定</h2>
+            
+            <div class="settings-section">
+                <h3>テーマカラー変更</h3>
+                <div class="color-palette">
+                    <button class="color-dot" data-theme="yellow" style="background-color: #FFB703;"></button>
+                    <button class="color-dot" data-theme="red" style="background-color: #d84a58;"></button>
+                    <button class="color-dot" data-theme="blue" style="background-color: #89c3eb;"></button>
+                    <button class="color-dot" data-theme="black" style="background-color: #2c363f;"></button>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3>テンプレートの追加</h3>
+                <form id="template-add-form">
+                    <div class="form-group" id="tpl-title-group">
+                        <input type="text" id="tpl-title" placeholder="やること" required>
+                    </div>
+                    <div class="form-group" id="tpl-money-group">
+                        <input type="text" id="tpl-money" placeholder="おこづかい" required>
+                    </div>
+                    <button type="submit" id="tpl-add-btn" title="テンプレートを追加">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                    </button>
+                </form>
+                
+                <h3>現在のテンプレート（タップで削除）</h3>
+                <div id="mypage-template-list"></div>
+            </div>
+        </main>
+
+        <footer>
+            <div id="home-controls">
+                <div id="template-area"></div>
+
+                <form id="add-form">
+                    <div class="form-group" id="new-title-group">
+                        <input type="text" id="new-title" placeholder="やること" required>
+                    </div>
+                    <div class="form-group" id="new-money-group">
+                        <input type="text" id="new-money" placeholder="おこづかい" required>
+                    </div>
+                    <button type="submit" id="add-btn" style="display: none;">登録</button>
+                    <button type="button" id="save-tpl-btn" title="テンプレートに追加">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+
+            <div id="nav-bar">
+                <div class="nav-item" id="nav-archive">
+                    <svg viewBox="0 0 24 24"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                </div>
+                <div class="nav-item active" id="nav-home">
+                    <svg viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                </div>
+                <div class="nav-item" id="nav-mypage">
+                    <svg viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </div>
+            </div>
+        </footer>
+    </div>
+    <div id="money-animation-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
