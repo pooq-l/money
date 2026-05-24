@@ -321,14 +321,17 @@ footer {
     gap: 6px;
 }
 /* =========================================
-   スマホ実機用のフルスクリーン設定
+   スマホ実機用のフルスクリーン設定（強力版）
    ========================================= */
 @media screen and (max-width: 600px) {
+    body {
+        align-items: flex-start !important; /* 中央寄せを解除して上から配置 */
+    }
     .app-container {
-        width: 100%;        /* 横幅を画面いっぱいに */
-        height: 100vh;      /* 高さを画面いっぱいに（古いブラウザ用） */
-        height: 100dvh;     /* 高さを画面いっぱいに（最新のスマホ用。URLバーなどの高さを自動計算してぴったり合わせる魔法のコード） */
-        border-radius: 0;   /* 角の丸みを完全に消す */
-        box-shadow: none;   /* 浮き上がる影を消す */
+        width: 100vw !important;    /* 横幅を画面100%に強制 */
+        height: 100dvh !important;  /* 高さをURLバーを除いた画面100%に強制 */
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
     }
 }
